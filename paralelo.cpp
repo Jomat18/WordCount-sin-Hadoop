@@ -8,6 +8,10 @@
 
 using namespace std;
 
+const char * filename = "file2.txt";
+
+using namespace std;
+
 struct to_read{
   FILE *fp;
   long int offset;
@@ -16,7 +20,7 @@ struct to_read{
   unordered_map<string, int> umap; 
 };
 
-void *read_file(void *arg)
+void *wordCount(void *arg)
 {
   struct to_read *data = (struct to_read *)arg;
 
@@ -29,7 +33,6 @@ void *read_file(void *arg)
   
   while (token != NULL) 
   {  
-      //cout<<token<<" "; 
       if (data->umap.find(token) == data->umap.end()) 
         data->umap[token] = 1;
           
@@ -40,18 +43,18 @@ void *read_file(void *arg)
   } 
 
   for (auto x : data->umap) 
-		cout << x.first << " " << x.second << endl; 
+		cout<<x.first<<" "<<x.second<<endl; 
 
   free(buffer);
-
+  free(token);
   pthread_exit(NULL);
 
 }
 
-int main() 
+int main( int argc, char **argv )
 { 
     FILE *fp; 
-    fp = fopen("file.txt", "r"); 
+    fp = fopen(filename, "r"); 
 
     if (fp==NULL)
     {
@@ -87,7 +90,7 @@ int main()
 		data.start = tid*chunk_size;
 		data.offset = data.start + chunk_size;
 
-		ret_val = pthread_create(&threads[tid], NULL, read_file, (void*) &data);
+		ret_val = pthread_create(&threads[tid], NULL, wordCount, (void*) &data);
       
 		if(ret_val!= 0) {
 			printf ("Create pthread error!\n");
@@ -108,3 +111,5 @@ int main()
   
     return 0; 
 } 
+
+//g++ paralelo.cpp -o wordcount -lpthread
