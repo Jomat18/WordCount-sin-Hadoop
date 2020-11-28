@@ -1,0 +1,4 @@
+the 1
+space 1
+nodes 1
+store 1
