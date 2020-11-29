@@ -3,21 +3,17 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <unordered_map> 
-#include <cmath> 
 #include <sstream>
-
-#define NTHREADS 4
+#include <math.h>
 
 using namespace std;
 
-FILE *file; 
-
 typedef struct thread {   
 	pthread_t thread_id;       
+  FILE *input;
 	FILE *output;
-	long int offset;
-	long int start;
-	long int chunk_size;
+  char *token;
+	int size;
 	unordered_map<string, int> umap; 
 } ThreadData;
 
@@ -25,27 +21,26 @@ void *wordCount(void *thread)
 {
 
   ThreadData *data  = (ThreadData*)thread;	
-  char *buffer = (char*) malloc (sizeof(char)*data->chunk_size);
 
-  fseek(file, data->start, data->offset);
-  fread(buffer, data->chunk_size, 1, file);
-  //printf("%ld %ld %ld %s\n",data->start ,data->offset ,data->chunk_size, filename);
+  char *buffer = (char*) malloc (sizeof(char)*data->size);
 
-  char *token = strtok(buffer, " "); 
+  fread(buffer, data->size, 1, data->input);
+
+  data->token = strtok(buffer, " \n\t"); 
   
-  while (token != NULL) 
+  while (data->token != NULL) 
   {  
-      if (data->umap.find(token) == data->umap.end()) 
-        data->umap[token] = 1;
+      if (data->umap.find(data->token) == data->umap.end()) 
+        data->umap[data->token] = 1;
           
       else
-        data->umap.at(token) += 1;
+        data->umap.at(data->token) += 1;
 
-      token = strtok(NULL, " "); 
+      data->token = strtok(NULL, " \n\t");
   } 
 
   free(buffer);
-  free(token);
+  free(data->token);
   //pthread_exit(NULL);
   return NULL;
 
@@ -54,101 +49,95 @@ void *wordCount(void *thread)
 int main(int argc, char *argv[])
 { 
 
-    if(argc<4)
+    if(argc<3){
+      perror("./wordcount number_files nthreads\n");
       exit(1);	
-
-    file = fopen(argv[1], "r");
-
-    if (!file)
-    {
-      perror("Could not open file.");
-      exit(1);
     }
 
-    long int size, chunk_size;
-    int ret_val, tid;
+    int nthreads, residue, n_iterations, ret_val, tid, output_files = 1;
+    string temp;
 
-    //printf("Enter the number of threads: ");
-	  //scanf("%d",&nthreads);
-	//threads = (pthread_t *)malloc(nthreads*sizeof(pthread_t));
+    nthreads = atoi(argv[2]);
 
-	//fseek(file, 0L, SEEK_END); 
-    //size = ftell(file);  
-    size = atoll(argv[2]);
+    residue = atoi(argv[1])%nthreads;
 
-    chunk_size = ceil((1.0*size)/NTHREADS);
+    n_iterations = ceil(atof(argv[1])/nthreads);    
 
-   	printf ("File of %ld lines\n",size);
-   	printf ("Size of chunk_size %ld lines\n",chunk_size);
-    printf ("Name of file %s\n",argv[1]);
-    printf ("Number of threads: %d\n", NTHREADS);
+    printf ("Number of threads: %d\n", nthreads);
+    printf ("Number of residue: %i\n", residue);
+    printf ("Number of itearions: %i\n", n_iterations);
 
-    fseek(file, 0, SEEK_SET); 
-  	string temp;
+  for (int it = 0; it < n_iterations; it++)
+  {   
+      if (it == n_iterations-1 && residue)
+        nthreads = residue;
 
-  	ThreadData thread[NTHREADS]; 
+      ThreadData thread[nthreads]; 
 
-    int output_files = atoi(argv[3]);
+    	for(tid = 0; tid < nthreads; tid++)
+      {
+        	FILE *output;
+          FILE *file; 
 
-	for(tid = 0; tid < NTHREADS; tid++)
-    {
-    	FILE *output;
-	    stringstream ss;
-	    ss << output_files;
-	    
-	    temp = "../output/output_" + ss.str() + ".txt";
-	    output = fopen(temp.c_str(),"w");
+    	    stringstream ss;
+    	    ss << output_files;
+    	    
+    	    temp = "output/output_" + ss.str() + ".txt";
+    	    output = fopen(temp.c_str(),"w");
 
-	    thread[tid].output = output;
-		thread[tid].chunk_size = chunk_size;
-		thread[tid].start = tid*chunk_size;
-		thread[tid].offset = thread[tid].start + chunk_size;
+          temp = "chunks/input_" + ss.str() + ".txt";
+          file = fopen(temp.c_str(), "r");
 
-		ret_val = pthread_create(&(thread[tid].thread_id), NULL, wordCount, (void *)(thread+tid));
-      
-		if(ret_val!= 0) {
-			printf ("Create pthread error!\n");
-			exit (1);
-      	}
-      	output_files++;
-    }
+          if (!file | !output)
+          {
+            perror("Could not open file.\n");
+            exit(1);
+          }
+
+          fseek(file, 0L, SEEK_END); 
+          thread[tid].size = ftell(file);  
+
+          fseek(file, 0L, SEEK_SET); 
+
+          thread[tid].input = file;
+    	    thread[tid].output = output;
+
+    		  ret_val = pthread_create(&(thread[tid].thread_id), NULL, wordCount, (void *)(thread+tid));
+          
+    		  if(ret_val!= 0) {
+    			   printf ("Create pthread error!\n");
+    			   exit (1);
+          }
+
+          output_files++;
+      }
 
 
-	//wait for results (all threads)
-	for (tid = 0; tid < NTHREADS; tid++){
-		pthread_join(thread[tid].thread_id, NULL);
-	}  
+    	//wait for results (all threads)
+    	for (tid = 0; tid < nthreads; tid++){
+    		  pthread_join(thread[tid].thread_id, NULL);
+    	}  
 	
-    for (tid = 0; tid < NTHREADS; tid++){
+      for (tid = 0; tid < nthreads; tid++){
 
-		  if(thread[tid].output == NULL)
-		  {
-		    printf("Error!");   
-		    exit(1);             
-		  }
+          fclose(thread[tid].input);
 
+    		  for (auto x : thread[tid].umap) {
 
-		  char *word;
+    		    thread[tid].token = (char*) malloc (sizeof(char)*(x.first.length()+1));
+    		    strcpy(thread[tid].token, x.first.c_str());  
 
-		  for (auto x : thread[tid].umap) {
+    		    fprintf(thread[tid].output, "%s %d\n",thread[tid].token,x.second);
+    		  }
 
-		    word = (char*) malloc (sizeof(char)*(x.first.length()+1));
-		    strcpy(word, x.first.c_str());  
+    		  free(thread[tid].token); 	
+          fclose(thread[tid].output);
+      }
 
-		    fprintf(thread[tid].output, "%s %d\n",word,x.second);
-		  }
-
-		free(word); 	
-        fclose(thread[tid].output);
-    }
-
-	fclose(file);
 	//free(thread);
-
 	//pthread_exit(NULL);
-  printf("\n");
+      printf("\nIteration number %i , %i threads\n", it+1, nthreads);
+    }  
   
     return 0; 
 } 
-
-//cd dataset -> bash ../start.sh
