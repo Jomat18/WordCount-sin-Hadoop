@@ -5,28 +5,33 @@
 #include <unordered_map> 
 #include <sstream>
 #include <math.h>
+#include <fstream>
+#include <iostream>
 
 using namespace std;
+
+pthread_mutex_t lock;
+unordered_map<string, int> ureduce; 
 
 typedef struct thread {   
 	pthread_t thread_id;       
   FILE *input;
-	FILE *output;
+  ofstream output;
   char *token;
-	int size;
+  char *buffer;
+	long size;
 	unordered_map<string, int> umap; 
 } ThreadData;
+
 
 void *wordCount(void *thread)
 {
 
   ThreadData *data  = (ThreadData*)thread;	
 
-  char *buffer = (char*) malloc (sizeof(char)*data->size);
+  //printf("%s %ld %li\n", data->buffer, data->thread_id, data->size);
 
-  fread(buffer, data->size, 1, data->input);
-
-  data->token = strtok(buffer, " \n\t"); 
+  data->token = strtok(data->buffer, " \n\t"); 
   
   while (data->token != NULL) 
   {  
@@ -39,9 +44,8 @@ void *wordCount(void *thread)
       data->token = strtok(NULL, " \n\t");
   } 
 
-  free(buffer);
+  free(data->buffer);
   free(data->token);
-  //pthread_exit(NULL);
   return NULL;
 
 }
@@ -63,9 +67,9 @@ int main(int argc, char *argv[])
 
     n_iterations = ceil(atof(argv[1])/nthreads);    
 
-    printf ("Number of threads: %d\n", nthreads);
-    printf ("Number of residue: %i\n", residue);
-    printf ("Number of itearions: %i\n", n_iterations);
+    printf ("\nNumber of threads: %d\n", nthreads);
+    printf ("Number of files: %i\n", atoi(argv[1]));
+    printf ("Number of iterations: %i\n\n", n_iterations);
 
   for (int it = 0; it < n_iterations; it++)
   {   
@@ -76,31 +80,30 @@ int main(int argc, char *argv[])
 
     	for(tid = 0; tid < nthreads; tid++)
       {
-        	FILE *output;
-          FILE *file; 
 
     	    stringstream ss;
     	    ss << output_files;
     	    
     	    temp = "output/output_" + ss.str() + ".txt";
-    	    output = fopen(temp.c_str(),"w");
+    	    thread[tid].output.open(temp.c_str(), ios_base::app); 
 
           temp = "chunks/input_" + ss.str() + ".txt";
-          file = fopen(temp.c_str(), "r");
+          thread[tid].input = fopen(temp.c_str(), "rb");
 
-          if (!file | !output)
+          if (!thread[tid].input | !thread[tid].output)
           {
             perror("Could not open file.\n");
             exit(1);
           }
 
-          fseek(file, 0L, SEEK_END); 
-          thread[tid].size = ftell(file);  
+          fseek(thread[tid].input, 0, SEEK_END); 
+          thread[tid].size = ftell(thread[tid].input);  
 
-          fseek(file, 0L, SEEK_SET); 
+          fseek(thread[tid].input, 0, SEEK_SET); 
 
-          thread[tid].input = file;
-    	    thread[tid].output = output;
+
+          thread[tid].buffer = (char*) malloc (sizeof(char)*thread[tid].size);
+          fread(thread[tid].buffer, 1, thread[tid].size, thread[tid].input); 
 
     		  ret_val = pthread_create(&(thread[tid].thread_id), NULL, wordCount, (void *)(thread+tid));
           
@@ -122,22 +125,34 @@ int main(int argc, char *argv[])
 
           fclose(thread[tid].input);
 
+          pthread_mutex_lock(&lock);  
+
     		  for (auto x : thread[tid].umap) {
 
-    		    thread[tid].token = (char*) malloc (sizeof(char)*(x.first.length()+1));
-    		    strcpy(thread[tid].token, x.first.c_str());  
+            if (ureduce.find(x.first) == ureduce.end()) 
+              ureduce[x.first] = x.second;
 
-    		    fprintf(thread[tid].output, "%s %d\n",thread[tid].token,x.second);
+            else
+              ureduce.at(x.first) += x.second;
+
+            thread[tid].output << x.first <<" "<<x.second<<endl;
     		  }
 
-    		  free(thread[tid].token); 	
-          fclose(thread[tid].output);
+          pthread_mutex_unlock(&lock);
+          thread[tid].output.close();
       }
 
-	//free(thread);
-	//pthread_exit(NULL);
-      printf("\nIteration number %i , %i threads\n", it+1, nthreads);
+      printf("Iteration number %i: %i threads\n", it+1, nthreads);
     }  
+
+    cout<<endl<<"*********** Results *************"<<endl<<endl;
+
+    for (auto x : ureduce) {
+
+      cout<<x.first<<" "<<x.second<<endl;
+    }  
+
+    //pthread_exit(NULL);  
   
     return 0; 
 } 
