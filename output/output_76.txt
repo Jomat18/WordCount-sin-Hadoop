@@ -1,5 +1,0 @@
-tree 1
-called 1
-day 1
-in 1
-is 1

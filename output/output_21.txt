@@ -1,6 +1,0 @@
-associated 1
-environment 1
-not 1
-strings 1
-security 1
-array 1

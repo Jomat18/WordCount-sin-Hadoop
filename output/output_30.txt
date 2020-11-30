@@ -1,6 +1,0 @@
-it 1
-every 1
-the 2
-network 1
-your 1
-This 1
