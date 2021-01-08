@@ -1,4 +1,0 @@
-conditions 1
-usability 1
-inside 1
-inner 1
