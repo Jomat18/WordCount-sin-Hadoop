@@ -1,12 +1,11 @@
-#include <string.h>
 #include <unordered_map> 
 #include <sstream>
+#include <string.h>
 #include <math.h>
 #include <fstream>
 #include <iostream>
 #include <unistd.h>
 #include <pthread.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 using namespace std;
@@ -16,7 +15,7 @@ unordered_map<string, int> ureduce;
 
 typedef struct thread_data {   
     int thread_id;       
-    FILE *input;
+    ifstream input;
     ofstream output;
     char *token;
     char *buffer;
@@ -43,8 +42,13 @@ void *wordCount(void *threadarg)
         data->token = strtok(NULL, " \n\t");
     } 
 
-	free(data->token);   
-	free(data->buffer);
+	//free(data->token);   
+	//free(data->buffer);
+	delete data->token; 
+	delete data->buffer;
+	data->token = NULL;
+	data->buffer = NULL; 
+
     pthread_exit(NULL);
 }
 
@@ -64,9 +68,9 @@ int main(int argc, char *argv[])
     n_iterations = ceil(atof(argv[1])/nthreads);    
     ThreadData thread[nthreads]; 
 
-    printf ("\nNumber of threads: %d\n", nthreads);
-    printf ("Number of files: %i\n", atoi(argv[1]));
-    printf ("Number of iterations: %i\n\n", n_iterations);
+    cout<<"\nNumber of threads: "<<nthreads<<"\n";
+    cout<<"Number of files: "<<argv[1]<<"\n";
+    cout<<"Number of iterations: "<<n_iterations<<"\n\n";
 
     pthread_t threads[nthreads];
 
@@ -84,7 +88,7 @@ int main(int argc, char *argv[])
             thread[tid].output.open(temp.c_str(), ios_base::app); 
 
             temp = "chunks/input_" + ss.str() + ".txt";
-            thread[tid].input = fopen(temp.c_str(), "r");
+            thread[tid].input.open(temp.c_str(), ios::in);
 
             if (!thread[tid].input | !thread[tid].output)
             {
@@ -92,23 +96,20 @@ int main(int argc, char *argv[])
                 exit(1);
             }
 
-            fseek(thread[tid].input, 0, SEEK_END); 
-            thread[tid].size = ftell(thread[tid].input);  
-
-            fseek(thread[tid].input, 0, SEEK_SET); 
+            thread[tid].input.seekg(0, thread[tid].input.end);
+		    thread[tid].size = thread[tid].input.tellg();
+		    thread[tid].input.seekg (0, thread[tid].input.beg);
 
             thread[tid].buffer = (char*) malloc (thread[tid].size*sizeof(char));
-            fread(thread[tid].buffer, 1, thread[tid].size, thread[tid].input); 
+            thread[tid].input.read(thread[tid].buffer, thread[tid].size);
 
             thread[tid].thread_id = tid;
-
-            //printf("%s %d %li\n", thread[tid].buffer, thread[tid].thread_id, thread[tid].size);
           
             ret_val = pthread_create(&threads[tid], NULL, wordCount, (void *)&thread[tid]);
           
             if(ret_val) 
             {
-               printf("ERROR; return code from pthread_create() is %d\n", ret_val);
+               cout<<"ERROR; return code from pthread_create() is "<<ret_val<<"\n";
                exit(-1);
             }
 
@@ -123,7 +124,7 @@ int main(int argc, char *argv[])
 
             if (ret_val) 
             {
-               printf("ERROR; return code from pthread_join() is %d\n", ret_val);
+               cout<<"ERROR; return code from pthread_join() is "<<ret_val<<"\n";
                exit(-1);
             }
 
@@ -142,11 +143,12 @@ int main(int argc, char *argv[])
             }
 
             pthread_mutex_unlock(&lock);
-    		fclose(thread[tid].input);
+            thread[tid].umap.clear();
+    		thread[tid].input.close();
             thread[tid].output.close();
         }    
 
-        printf("Iteration number %i: %i threads\n", it+1, nthreads);
+        cout<<"Iteration number "<<it+1<<": "<<nthreads<<" threads\n";
 
     }
 
