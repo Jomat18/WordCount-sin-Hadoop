@@ -1,6 +1,15 @@
 #!/bin/bash
 
 FILE=input/file.txt
+
+#awk '/MemTotal/ {print $2}' /proc/meminfo
+#cat /proc/meminfo | grep MemTotal
+#awk '/MemFree/ {print $2}' /proc/meminfo
+#awk '/MemAvailable/ {print $2}' /proc/meminfo
+# free  // kilobytes
+# free -m   //megabyte
+
+
 N_LINES_CHUNK=400
 
 g++ generate_file.cpp -o gfile
@@ -24,9 +33,10 @@ done
 
 #NUMBER_FILES="$(ls chunks | wc -l)";
 
-let counter=counter-1
+let counter=counter-1;
 
-N_THREADS=4
+#nproc
+N_THREADS=$(nproc --all);  #4
 
 g++ parallel.cpp -o wordcount -pthread
 ./wordcount $counter $N_THREADS
