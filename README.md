@@ -1,5 +1,9 @@
 ## Implementación del problema de WordCount en paralelo, siguiendo la idea de Hadoop Map Reduce
 
-## Resultados :
+## Resultados de 7,1 GB:
 
-![Resultados](testing.png?raw=true)
+![Resultados](test_1.png?raw=true)
+
+## Resultados de 10,6 GB:
+
+![Resultados](test_2.png?raw=true)
