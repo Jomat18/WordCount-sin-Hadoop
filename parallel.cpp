@@ -1,182 +1,220 @@
-#include <unordered_map> 
-#include <sstream>
 #include <string.h>
-#include <math.h>
-#include <fstream>
+#include <sstream>
 #include <iostream>
-#include <unistd.h>
-#include <pthread.h>
 #include <stdlib.h>
+#include <pthread.h>
+#include <unordered_map> 
+#include <math.h>
+#include <stdio.h> 
+#include <fstream>
+
+//#include <sys/stat.h>
+//struct stat st;
+
+#define DELIMS " \n.,;()!\"#%:@$&'*+,-/[]_{}~"
+#define BLOCK 1073741824 // bytes  -> 1GB
 
 using namespace std;
 
 pthread_mutex_t lock;
-unordered_map<string, int> ureduce; 
-ofstream file_result;
+unordered_map<string, int> reduce;
+//FILE* file_reduce;
+ofstream file_reduce;
+FILE* input;
 
 typedef struct thread_data {   
-    int thread_id;       
-    ifstream input;
-    ifstream input_bytes;
-    ofstream output;
-    char *token;
-    char *buffer;
-    int size;
-    long int begin = 0;
-    unordered_map<string, int> umap; 
+    //FILE* chunk_input; w+
+    //FILE* file_map; a+
+    long long chunk_size;
+    long long start;
+    long long end;
 } ThreadData;
-
 
 void *wordCount(void *threadarg)
 {
-    ThreadData *data;
-    data  = (ThreadData*) threadarg;
+	ThreadData *data = (ThreadData *) threadarg;
 
-    //cout<<data->buffer<<endl;
-  
-    data->token = strtok(data->buffer, " \n\t"); 
-  
-    while (data->token != NULL) 
+    unordered_map<string, int> map; 
+
+    char *buffer = (char*) malloc (sizeof(char)*data->chunk_size);
+
+	fseek(input, data->start, SEEK_SET);
+	fread(buffer, data->chunk_size, 1, input);
+
+	//printf("%s\n", buffer);
+
+	printf ("Size of chunk original: %lld bytes.\n",data->chunk_size);
+
+    char *token = strtok(buffer, DELIMS);
+
+    while (token != NULL) 
     {  
-        if (data->umap.find(data->token) == data->umap.end()) 
-            data->umap[data->token] = 1;
+        if (map.find(token) == map.end()) 
+            map[token] = 1;
           
         else
-            data->umap.at(data->token) += 1;
+            map.at(token) += 1;
 
-        data->token = strtok(NULL, " \n\t");
+        token = strtok(NULL, DELIMS);
     } 
 
-	delete data->token; 
-	delete data->buffer;
-	data->token = NULL;
-	data->buffer = NULL; 
+    free(token);
+    free(buffer);
 
-    pthread_exit(NULL);
+    pthread_mutex_lock(&lock);  
+
+	for (unordered_map<string, int>::iterator it = map.begin(); it != map.end(); ++it) {
+		//cout<<it->first;
+		//printf(" : %d\n", it->second);
+		if (reduce.find(it->first) == reduce.end()) 
+            reduce[it->first] = it->second;
+
+        else
+            reduce.at(it->first) += it->second;
+	}
+
+    pthread_mutex_unlock(&lock);
+    //data->chunk_input.close();
+    //data->file_map.close();
+
+	return NULL;
 }
 
+
 int main(int argc, char *argv[])
-{
-    if(argc<3)
+{ 
+
+	if(argc<2)
     {
-        perror("./wordcount number_files nthreads\n");
+        perror("./wordcount nthreads\n");
         exit(1);  
     }
 
-    int nthreads, residue, n_iterations, ret_val, tid, output_files = 1;
+    if (pthread_mutex_init(&lock, NULL) != 0) { 
+        printf("\n mutex init has failed\n"); 
+        return 1; 
+    } 
+
+    string filename = "input/file.txt";
+    
+    long long size, chunks_number, start = 0;
+    long nthreads, residue, n_iterations, ret_val, tid, tid_, part_file = 1;
     string temp;
+    char letter;
 
-    nthreads = atoi(argv[2]);
-    residue = atoi(argv[1])%nthreads;
-    n_iterations = ceil(atof(argv[1])/nthreads);    
-    ThreadData thread[nthreads]; 
+    //pthread_t *threads;
 
-    cout<<"\nNumber of threads: "<<nthreads<<"\n";
-    cout<<"Number of files or chunks: "<<argv[1]<<"\n";
-    cout<<"Number of iterations: "<<n_iterations<<"\n\n";
+    input = fopen(filename.c_str(), "rt");
 
+    if (!input)
+        exit(EXIT_FAILURE);
+
+    nthreads = atol(argv[1]);
     pthread_t threads[nthreads];
+    ThreadData thread[nthreads]; 	
 
-    for (int it = 0; it < n_iterations; it++)
+	//threads = (pthread_t *)malloc(nthreads*sizeof(pthread_t));
+
+	fseek(input, 0L, SEEK_END); 
+    size = ftell(input);  
+
+    chunks_number = ceil((1.0*size)/BLOCK); 
+
+    n_iterations = ceil((1.0*chunks_number)/nthreads);    
+    residue = chunks_number%nthreads;
+
+    // Linux/POSIX:
+    //stat(filename.c_str(), &st);
+	//size = st.st_size;
+
+    fseek(input, 0L, SEEK_SET); 
+
+	printf("\nNumber of threads: %ld\n", nthreads);
+	printf("Size of file.txt: %lld bytes.\n",size);
+	printf("Size of chunk initial: %d bytes.\n",BLOCK);
+    printf("Number of files or chunks: %lld aprox\n", chunks_number);
+    printf("Number of iterations: %ld aprox\n\n", n_iterations);
+
+    pthread_mutex_init(&lock, NULL);
+
+  	for (int it = 0; it < n_iterations && size; it++)
     {   
         if (it == n_iterations-1 && residue)
             nthreads = residue;
 
-        for(tid = 0; tid < nthreads; tid++)
+        for(tid = 0; tid < nthreads && size; tid++)
         {
-            stringstream ss;
-            ss << output_files;
-          
-            //temp = "output/output_" + ss.str() + ".txt";
-            //thread[tid].output.open(temp.c_str(), ios_base::app); 
+            //stringstream ss;
+            //ss << part_file;            
+			
+            thread[tid].start = start;
+            thread[tid].chunk_size = BLOCK;
+            thread[tid].end = thread[tid].start + thread[tid].chunk_size;
+            
+            if (size <=thread[tid].chunk_size) {
+            	thread[tid].chunk_size = size;
+            	size = 0;
+            }
+            else {
+            	
+	            fseek(input, thread[tid].end, SEEK_SET); 
 
-            //temp = "chunks/input_" + ss.str() + ".txt";
-            //thread[tid].input.open(temp.c_str(), ios::in);
+	            letter=fgetc(input);
+	            ungetc(letter,input);
 
-            thread[tid].input_bytes.open("chunks/input.txt", ios::in);
-            thread[tid].input.open("input/file.txt", ios::in);
+	            while(isalpha(letter) && size> thread[tid].chunk_size) {
 
-            //if (!thread[tid].input | !thread[tid].output)
-            if (!thread[tid].input | !thread[tid].input_bytes)
-            {
-                perror("Could not open file.\n");
-                exit(1);
+	            	thread[tid].chunk_size++;
+	            	fseek(input, 1, SEEK_CUR);
+
+	            	letter=fgetc(input);
+	            	ungetc(letter,input);
+	            }
+			
+	            start += thread[tid].chunk_size;
+            	size -= thread[tid].chunk_size;
+	
             }
 
-            //thread[tid].input.seekg(0, thread[tid].input.end);
-		    //thread[tid].size = thread[tid].input.tellg();
-		    //thread[tid].input.seekg (0, thread[tid].input.beg);
+  			ret_val = pthread_create(&threads[tid], NULL, wordCount, (void *)&thread[tid]);
 
-			for (int i=0; i<output_files ;i++) {
-				thread[tid].input_bytes >> thread[tid].size;
-				thread[tid].begin += thread[tid].size;
-			}
+  			if(ret_val!= 0) {
+	  			printf ("Create pthread error!, return code from pthread_create() is %ld\n", ret_val);
+  				exit(EXIT_FAILURE);
+        	}
 
-			thread[tid].begin -= thread[tid].size;
-
-			thread[tid].input.seekg (thread[tid].begin, thread[tid].input.beg);
-
-            thread[tid].buffer = (char*) malloc (thread[tid].size*sizeof(char));
-            thread[tid].input.read(thread[tid].buffer, thread[tid].size);
-
-            thread[tid].thread_id = tid;
-          
-            ret_val = pthread_create(&threads[tid], NULL, wordCount, (void *)&thread[tid]);
-          
-            if (ret_val) 
-            {
-               cout<<"ERROR; return code from pthread_create() is "<<ret_val<<"\n";
-               exit(-1);
-            }
-
-            output_files++;
+        	//part_file++;
         }
 
-    
-        for (tid = 0; tid < nthreads; tid++)
-        {
 
-            ret_val = pthread_join(threads[tid],  NULL);
+		for (tid_ = 0; tid_ < tid; tid_++){
+			ret_val = pthread_join(threads[tid_], NULL);
 
-            if (ret_val) 
+			if (ret_val) 
             {
-               cout<<"ERROR; return code from pthread_join() is "<<ret_val<<"\n";
-               exit(-1);
+            	printf ("ERROR, return code from pthread_join() is %ld\n", ret_val);	               
+               	exit(EXIT_FAILURE);
             }
+		}  
 
-            pthread_mutex_lock(&lock);  
+		printf("\tIteration number %d : %ld threads\n",(it+1), tid);
+	}
 
-            for (auto x : thread[tid].umap) 
-            {
+	pthread_mutex_destroy(&lock); 
+    printf("\n*********** Success!! *************\n\n");
 
-                if (ureduce.find(x.first) == ureduce.end()) 
-                    ureduce[x.first] = x.second;
+    //file_reduce = fopen("result.txt", "w+"); 
+    file_reduce.open("result.txt", ios_base::out | ios_base::trunc);
 
-                else
-                    ureduce.at(x.first) += x.second;
+    for (unordered_map<string, int>::iterator it = reduce.begin(); it != reduce.end(); ++it) {
+		//cout<<it->first;
+		//printf(" - %d\n", it->second);
+		file_reduce << it->first << " - " << it->second <<"\n";
+	}
 
-                //thread[tid].output << x.first <<" "<<x.second<<endl;
-            }
+    fclose(input);
+    file_reduce.close();
+    //free(threads);
 
-            pthread_mutex_unlock(&lock);
-            thread[tid].umap.clear();
-    		thread[tid].input.close();
-    		thread[tid].input_bytes.close();
-    		thread[tid].begin = 0;
-            //thread[tid].output.close();
-        }    
-
-        cout<<"Iteration number "<<it+1<<": "<<nthreads<<" threads\n";
-
-    }
-
-    cout<<endl<<"*********** Success!! *************"<<endl<<endl;
-
-    file_result.open("result.txt", ios_base::out | ios_base::trunc); 
-    for (auto x : ureduce) 
-        file_result<<x.first<<" "<<x.second<<endl;
-
-    file_result.close();
-    pthread_exit(NULL);  
-  
-} 
+    return 0;
+}  

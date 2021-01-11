@@ -10,7 +10,7 @@
 using namespace std;
 
 int main() {
-	long int number_words = 12000;
+	long int number_words = 1200000000;
 	int size;
 
 	ofstream outfile;

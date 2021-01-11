@@ -1,139 +1,240 @@
-encourage 1
-more 1
-usually 1
-While 1
-like 1
-keep 3
-prevent 3
-science 1
-personal 2
-associative 1
-on 2
-laws 3
-integrity 2
-wonders 1
-can 3
-our 1
-sound 1
-computer 3
-To 1
-not 1
-Blackfish 2
-getting 1
-remove 2
-ie 1
-inner 1
-users 2
-node 4
-protect 4
-and 3
-She 1
-will 1
-processes 1
-is 4
-copyright 1
-next 3
-was 2
-a 8
-prefix 4
-we 2
-For 2
-space 1
-path 2
-that 2
-similar 1
-it 1
-environment 2
-associated 3
-empty 1
-out 1
-defines 1
-diving 2
-position 1
-Lydia 1
-used 3
-refers 1
-these 1
-structure 2
-creatures 1
-file 1
-across 4
-Keys 1
-tree 3
-distributed 1
-are 3
-All 1
-look 2
-them 2
-necessary 1
-key 1
-network 2
-of 6
-trie 2
-string 2
-through 1
-this 4
-open 1
-IT 1
-store 1
-ordered 2
-This 1
-in 5
-from 3
-the 14
-different 1
-insects 2
-your 2
-up 1
-search 2
-you 1
-called 1
-show 1
-day 2
-others 1
-animal 1
-brutal 1
-into 1
-posting 1
-root 1
-met 1
-see 4
-files 1
-Please 1
-Hence 1
-favorite 1
-use 2
-were 2
-descendants 2
-header 1
-for 1
-over 1
-be 1
-digital 2
-instead 1
-interest 1
-security 2
-elephants 1
-no 2
-information 3
-reliability 1
-fans 1
-with 4
-documentaries 4
-tools 1
-keys 1
-or 1
-inside 2
-necessarily 3
-also 1
-dynamic 3
-at 1
-to 8
-data 2
-presentation 2
-learn 1
-exceptional 1
-list 1
-leaves 1
-they 1
-know 1
+similar - 609670
+every - 610300
+no - 610030
+do - 1219648
+disk - 610346
+necessary - 610405
+refer - 610238
+tiny - 611700
+this - 2439161
+through - 610430
+security - 4881307
+elephants - 609759
+prevents - 609360
+captivity - 610224
+close - 610130
+invasion - 610060
+prevent - 1219498
+over - 608827
+be - 1219001
+make - 609561
+files - 609199
+met - 611123
+see - 1220414
+animals - 610559
+optimized - 609699
+which - 610205
+defines - 609453
+Copyright - 610483
+inside - 1221055
+or - 2439907
+necessarily - 609534
+affecting - 609053
+kingdom - 607749
+This - 1219508
+also - 1220119
+computer - 1220432
+not - 1220284
+To - 609030
+accessing - 609925
+interest - 610591
+instead - 609796
+changing - 609790
+out - 611141
+empty - 610528
+show - 609500
+correspond - 610202
+day - 609533
+others - 610685
+information - 1828242
+reliability - 609485
+came - 610658
+malicious - 611222
+tree - 5488846
+binary - 608256
+Wildlife - 609749
+Keep - 609162
+a - 5485349
+keeping - 610239
+different - 610661
+them - 1219993
+look - 609318
+confusion - 609539
+sensitive - 609595
+vestibule - 610399
+insects - 610517
+keys - 1829185
+documentaries - 1219687
+tools - 609286
+readers - 608962
+are - 2441291
+space - 609799
+For - 608977
+we - 609049
+prefix - 2441848
+unauthorized - 609764
+All - 610147
+with - 4266136
+spend - 611688
+by - 1220137
+to - 9763221
+data - 1832076
+it - 1220425
+associated - 3659624
+will - 1219835
+processes - 610498
+value - 609092
+is - 3662156
+tend - 608500
+delight - 609738
+important - 610438
+string - 1219267
+designed - 609658
+before - 1219558
+exceptional - 610228
+trie - 609641
+an - 1217434
+of - 6706872
+the - 17076858
+in - 4880357
+IT - 1220274
+store - 610924
+key - 1830523
+whereas - 609907
+encourage - 609761
+usability - 609886
+faced - 608997
+check - 1218230
+In - 610396
+sure - 1220211
+search - 1220032
+fans - 610703
+dynamic - 610356
+presentation - 609984
+about - 1217967
+open - 609052
+compact - 608563
+was - 609586
+kind - 610017
+were - 609990
+from - 3047449
+strings - 609426
+We - 609688
+may - 610141
+handle - 609379
+associative - 609683
+all - 609655
+creatures - 610426
+file - 609252
+called - 609680
+types - 609777
+Lydia - 611198
+learn - 610033
+set - 610342
+across - 610162
+laws - 1220110
+its - 609324
+stores - 609762
+on - 1828408
+list - 609482
+predators - 610787
+Hence - 610196
+Please - 608856
+love - 609786
+keep - 610758
+like - 610494
+uncompromised - 610386
+ordered - 609695
+ability - 609884
+nodes - 609826
+remove - 609575
+While - 610363
+into - 610788
+It - 611016
+your - 3051319
+up - 610909
+Unlike - 610108
+usually - 609359
+more - 609158
+though - 609854
+ie - 609658
+securing - 610019
+kids - 610336
+sound - 609410
+our - 609820
+ensures - 611856
+Green - 609675
+brutal - 609150
+animal - 610532
+root - 611290
+Charlotte - 609992
+what - 1219221
+copyright - 610293
+digital - 1220396
+Although - 610306
+gigantic - 608874
+use - 608687
+favorite - 608425
+Keys - 608450
+type - 610070
+documentary - 609704
+diving - 610963
+position - 610598
+Lucas - 610990
+hunt - 609768
+business - 609223
+science - 610475
+their - 610953
+personal - 608907
+can - 1221085
+have - 609400
+wonders - 610928
+Network - 608711
+electronic - 612026
+So - 609830
+at - 609825
+for - 1217289
+header - 610717
+descendants - 610776
+used - 1218178
+own - 609756
+node - 3048374
+and - 4269062
+world - 610881
+protect - 1220740
+She - 609424
+structure - 1218482
+these - 1829982
+Do - 610096
+integrity - 609714
+conditions - 610056
+you - 1218456
+environment - 611274
+where - 611460
+array - 610695
+getting - 1218960
+Blackfish - 609453
+posting - 610923
+path - 609245
+that - 1829918
+hacker - 609612
+take - 610313
+they - 609432
+know - 610098
+leaves - 611995
+refers - 1220411
+next - 609828
+users - 1219735
+access - 609536
+some - 1220212
+Information - 608987
+common - 609358
+network - 2437710
+negatively - 610292
+Kids - 611898
+focus - 609957
+mind - 608552
+distributed - 610351
+country - 609424
+inner - 610749
+family - 608474
