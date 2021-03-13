@@ -1,4 +1,4 @@
-Implementación del problema de WordCount en multithread, siguiendo la idea de Hadoop Map Reduce
+Implementación del problema de WordCount en multithread
 =========================
 
 Resolviendo el desafío de contar la frecuencia de palabras en un archivo enorme.
@@ -13,21 +13,21 @@ Esta solución utiliza una estructura de datos unordered_map y múltiples POSIX 
 
 Los pasos realizados para la solución son los siguientes:
 
-1) Calcular el numero de Bloques iguales, en este caso se considero el tamaño del Bloque de 1GB. Cabe mencionar que el tamaño del Bloque se recalculara debido a que puede dividir una palabra, para lo cual se ira moviendo hasta encontrar un espacio en blanco, salto de linea o simbolo de puntuación.
-2) Calcular el numero de iteraciones de 4 threads cada una:
-3) Para cada Thead extender el tamaño del Bloque por si se cae en medio de una palabra, para luego:
+1) Calcular el numero de Bloques iguales. Se considero el tamaño de los Bloques iniciales en 1GB. Cabe mencionar que el tamaño del Bloque se recalculara en las iteraciones debido a que se corre el riesgo de dividir una palabra, para lo cual nos iremos desplazando hasta encontrar un espacio en blanco, un salto de linea o un simbolo de puntuación.
+2) Calcular el numero de iteraciones de 4 threads cada una
+3) Para cada Thead extendemos el tamaño del Bloque como se menciono antes para luego:
 - Leer el Bloque 
-- Extraer solo las palabras.
+- Extraer solo las palabras obviando simbolos de puntuacion, numeros, etc.
 - Guardar las palabras y sus frecuencias en un hash table (unordered_map) del Thread
 - Escribir las palabras y sus frecuencias en un hash table global, liberando la memoria del hash table del Thread
-4) Escribir los resultados en result.txt
+4) Finalmente escribir los resultados en result.txt
 
 -------------------------------------------
 
-## Resultados de 7,1 GB:
+## Resultados con un archivo de 7.1 GB:
 
 ![Resultados](test_1.png?raw=true)
 
-## Resultados de 10,6 GB:
+## Resultados con un archivo de 10.6 GB tomandose en calcular la frecuencia de palabras un tiempo de 1 minuto con 59 segundos:
 
 ![Resultados](test_2.png?raw=true)
