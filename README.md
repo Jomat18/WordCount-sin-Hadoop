@@ -31,3 +31,5 @@ Los pasos realizados para la solución son los siguientes:
 ## Resultados con un archivo de 10.6 GB tomandose en calcular la frecuencia de palabras un tiempo de 1 minuto con 59 segundos:
 
 ![Resultados](test_2.png?raw=true)
+
+Observación: Se puede mejorar el tiempo y el almacenaniento en memoria usando una estructura de datos "Trie"
